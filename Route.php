@@ -47,6 +47,7 @@ class Route
     public function invoke($context = null)
     {
         $params = $this->matchs;
+        print_r($params);
         array_unshift($params, $context);
         if (is_callable($this->callback)) {
             return call_user_func_array($this->callback, $params);

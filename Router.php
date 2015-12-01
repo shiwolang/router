@@ -47,11 +47,16 @@ class Router
 
     public function execute($routeString)
     {
+        /** @var route[] $matchedRoutes */
+        $matchedRoutes = [];
         $context = null;
         foreach ($this->routes as $name => $route) {
             if ($route->match($routeString)) {
-                $context = $route->invoke($context);
+                $matchedRoutes[$name] = $route;
             }
+        }
+        foreach($matchedRoutes as $route){
+            $route->invoke();
         }
     }
 

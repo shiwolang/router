@@ -9,51 +9,20 @@
 namespace shiwolang\router;
 
 
-class Route
+class Route extends CallBack
 {
     protected static $parsers = [
         "parseInt",
     ];
 
 
-    public $pattern  = "";
-    public $rule     = "";
-    public $name     = "";
-    public $callback = null;
-    public $matchs   = [];
-
-    public static function init($config = [])
-    {
-        $route = new static();
-
-        foreach ($config as $name => $value) {
-            $setter = 'set' . ucfirst($name);
-            if (method_exists($route, $setter)) {
-                $route->$setter($value);
-            } else {
-                $route->$name = $value;
-            }
-        }
-
-        return $route;
-    }
-
+    public $pattern = null;
+    public $rule    = "";
+    public $matchs  = [];
 
     public function match($routeString)
     {
         return preg_match($this->pattern, $routeString, $this->matchs);
-    }
-
-    public function invoke($context = null)
-    {
-        $params = $this->matchs;
-        print_r($params);
-        array_unshift($params, $context);
-        if (is_callable($this->callback)) {
-            return call_user_func_array($this->callback, $params);
-        }
-
-        return "";
     }
 
     /**

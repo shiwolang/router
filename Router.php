@@ -54,24 +54,38 @@ class Router
 
     public function execute($routeString, $debug = true)
     {
-        $this->debug  = $debug;
-        $matchedRoute = $this->routeExecuter($routeString);
-        /** @var String $matchedRouteName */
+        $this->debug      = $debug;
+        $matchedRoute     = $this->routeExecuter($routeString);
         $matchedRouteName = $matchedRoute[0];
         /** @var Route $matchedRoute */
-        $matchedRoute   = $matchedRoute[1];
-        $namesExplode   = explode(".", $matchedRouteName);
-        $myselfhander   = function () use ($matchedRouteName, $matchedRoute, $namesExplode) {
+        $matchedRoute = $matchedRoute[1];
+        $namesExplode = explode(".", $matchedRouteName);
+
+
+        $myselfhander = function () use ($matchedRouteName, $matchedRoute, $namesExplode) {
             $this->contextExecuter($namesExplode);
-            $matchedRoute->invoke();
+            $result = $matchedRoute->invoke();
             $this->contextExecuter($namesExplode, false);
+
+            return $result;
         };
-        $myselfCallback = CallBack::init([
+
+        $_matchedRouteName      = $namesExplode;
+        $_matchedRouteNameCount = count($_matchedRouteName);
+
+        $handers[] = CallBack::init([
+            "name"     => "$$$$",
             "callback" => $myselfhander
-        ]);
+        ]);;
 
-        $this->handlerExecuter($myselfCallback, $namesExplode);
-
+        for ($i = 1; $i <= $_matchedRouteNameCount; $i++) {
+            $name = implode(".", $_matchedRouteName);
+            array_pop($_matchedRouteName);
+            if (isset($this->handlers[$name])) {
+                $handers[] = $this->handlers[$name][1];
+            }
+        }
+        $this->handlerExecuter($handers, count($handers), 1);
     }
 
     public function routeExecuter($routeString)
@@ -87,10 +101,11 @@ class Router
                 }
             }
         }
-        if (count($matchedRoutes) > 1) {
+        $matchedRoutesCount = count($matchedRoutes);
+        if ($matchedRoutesCount > 1) {
             throw new RouterException("Duplicate route pattern match for( " . implode(" );( ", array_keys($matchedRoutes)) . " )");
         }
-        if (count($matchedRoutes) == 0) {
+        if ($matchedRoutesCount == 0) {
             throw new RouterException("404 Exception!");
         }
 
@@ -111,18 +126,21 @@ class Router
         }
     }
 
-    public function handlerExecuter(CallBack $result, $matchedRouteName)
+    public function handlerExecuter($handers, $max, $offset = 1)
     {
-        $name = implode(".", $matchedRouteName);
-        array_pop($matchedRouteName);
-        if (isset($this->handlers[$name])) {
-            $hander = $this->handlers[$name];
-            if ($hander[0]) {
-                $result = $result->invoke();
-            }
-            $hander[1]($result);
-            //TODO
+        /** @var \shiwolang\router\CallBack[] $handers */
+
+        $nextOffset = $offset + 1;
+        $nextOffset = $nextOffset >= $max ? null : $nextOffset;
+
+        if ($nextOffset === null) {
+            return $handers[$offset]->invoke([$handers[$offset - 1]]);
+        } else {
+            $handers[$offset]->parent = $handers[$offset - 1];
+
+            return $this->handlerExecuter($handers, $max, $nextOffset);
         }
+
     }
 
     public function addRoute(Route $route, $name = null, $reSet = false)
@@ -151,19 +169,18 @@ class Router
             array_unshift($this->contexts[$name], $callBack);
     }
 
-    public function addHandler(CallBack $callBack, $name, $executeRoute = true, $reSet = false)
+    public function addHandler(CallBack $callBack, $name, $reSet = false)
     {
-        if ($reSet === null) {
+        $executeRoute = true;
+        if ($reSet) {
             $this->handlers[$name] = [$executeRoute, $callBack];
 
             return;
         }
-        if (!isset($this->routes[$name])) {
-            throw new RouterException("Route of name:(" . $name . ") does not exist");
-        }
         if (isset($this->handlers[$name])) {
             throw new RouterException("Handler of name:(" . $name . ") does exist");
         }
+
         $callBack->name        = $name;
         $this->handlers[$name] = [$executeRoute, $callBack];
     }

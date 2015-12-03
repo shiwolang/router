@@ -44,12 +44,5 @@ class Route extends CallBack
         return $this->pattern;
     }
 
-    function __debugInfo()
-    {
-        return [
-            'pattern' => $this->pattern,
-            'rule'    => $this->rule,
-            'name'    => $this->name,
-        ];
-    }
+
 }

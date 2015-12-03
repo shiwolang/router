@@ -14,6 +14,8 @@ class CallBack
     public $name     = "";
     public $callback = null;
     public $handled  = null;
+    /** @var null|\shiwolang\router\CallBack */
+    public $parent = null;
 
     protected $result    = null;
     protected $exception = null;
@@ -34,9 +36,13 @@ class CallBack
         return $route;
     }
 
-    public function invoke()
+    public function invoke($params = [])
     {
-        return $this->result = $this->callback($this->callback);
+        if ($this->parent !== null) {
+            return $this->result = $this->callback($this->callback, [$this->parent]);
+        }
+
+        return $this->result = $this->callback($this->callback, $params);
     }
 
     public function invokeHandled()
@@ -48,8 +54,27 @@ class CallBack
         return $this->callback($this->handled, ["result" => $this->result]);
     }
 
+    public function invokeParent()
+    {
+        if ($this->parent === null) {
+            return null;
+        }
+
+        return $this->callback($this->parent, ["result" => $this->result]);
+    }
+
     public static function callback($fn, $param = [])
     {
-        return [];
+        if (is_callable($fn)) {
+            return call_user_func_array($fn, $param);
+        }
+    }
+
+    public function __debugInfo()
+    {
+        return [
+            "name"   => $this->name,
+            "parent" => $this->parent
+        ];
     }
 }

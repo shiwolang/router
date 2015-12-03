@@ -16,14 +16,27 @@ class Route extends CallBack
     ];
 
 
-    public $pattern = null;
-    public $rule    = "";
-    public $matchs  = [];
+    public $pattern     = null;
+    public $rule        = "";
+    public $matchs      = [];
+    public $routeString = "";
 
     public function match($routeString)
     {
+        $this->routeString = $routeString;
+
         return preg_match($this->pattern, $routeString, $this->matchs);
     }
+
+    protected function callClassMethod($className, $method, $params)
+    {
+        $classNameFull = $className . "::" . $method;
+        $classNameFull = preg_replace($this->pattern, $classNameFull, $this->routeString);
+        $class         = explode("::", $classNameFull);
+
+        return parent::callClassMethod($class[0], $class[1], $params);
+    }
+
 
     /**
      * @param string $rule

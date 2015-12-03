@@ -54,20 +54,31 @@ class CallBack
         return $this->callback($this->handled, ["result" => $this->result]);
     }
 
-    public function invokeParent()
-    {
-        if ($this->parent === null) {
-            return null;
-        }
-
-        return $this->callback($this->parent, ["result" => $this->result]);
-    }
-
-    public static function callback($fn, $param = [])
+    public function callback($fn, $param = [])
     {
         if (is_callable($fn)) {
-            return call_user_func_array($fn, $param);
+            return $this->callFunction($fn, $param);
         }
+        if (is_string($fn) && strpos($fn, "::") !== false) {
+            $fn = explode("::", $fn);
+
+            return $this->callClassMethod($fn[0], $fn[1], $param);
+        }
+        if (is_array($fn)) {
+            return $this->callClassMethod($fn[0], $fn[1], $param);
+        }
+
+        return null;
+    }
+
+    protected function callFunction($fn, $params)
+    {
+        return null;
+    }
+
+    protected function callClassMethod($className, $method, $params)
+    {
+        return null;
     }
 
     public function __debugInfo()

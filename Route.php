@@ -11,13 +11,8 @@ namespace shiwolang\router;
 
 class Route extends CallBack
 {
-    protected static $parsers = [
-        "parseInt",
-    ];
-
 
     public $pattern     = null;
-    public $rule        = "";
     public $matchs      = [];
     public $routeString = "";
 
@@ -37,17 +32,6 @@ class Route extends CallBack
         return parent::callClassMethod($class[0], $class[1], $params);
     }
 
-
-    /**
-     * @param string $rule
-     */
-    public function setRule($rule)
-    {
-        foreach (static::$parsers as $name => $parser) {
-            $rule = $this->$name($rule);
-        }
-        $this->rule = $rule;
-    }
 
     /**
      * @return string

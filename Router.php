@@ -74,7 +74,7 @@ class Router
         $_matchedRouteNameCount = count($_matchedRouteName);
 
         $handers[] = CallBack::init([
-            "name"     => "$$$$",
+            "name"     => '__$$$$$__',
             "callback" => $myselfhander
         ]);;
 
@@ -106,7 +106,7 @@ class Router
             throw new RouterException("Duplicate route pattern match for( " . implode(" );( ", array_keys($matchedRoutes)) . " )");
         }
         if ($matchedRoutesCount == 0) {
-            throw new RouterException("404 Exception!");
+            throw new RouterException("Can not match route of " . $routeString . "!", 404);
         }
 
         return [current(array_keys($matchedRoutes)), current($matchedRoutes)];
@@ -134,6 +134,10 @@ class Router
         $nextOffset = $nextOffset >= $max ? null : $nextOffset;
 
         if ($nextOffset === null) {
+            if ($max == 1) {
+                return $handers[0]->invoke([]);
+            }
+
             return $handers[$offset]->invoke([$handers[$offset - 1]]);
         } else {
             $handers[$offset]->parent = $handers[$offset - 1];
@@ -190,6 +194,10 @@ class Router
         return $this->routes;
     }
 
+    public static function urlFor($name)
+    {
+
+    }
 
     /////////////////////////////////////////////
     private function __construct()

@@ -56,29 +56,41 @@ class CallBack
 
     public function callback($fn, $param = [])
     {
-        if (is_callable($fn)) {
+
+        if (($fn) instanceof \Closure) {
+
             return $this->callFunction($fn, $param);
         }
+
         if (is_string($fn) && strpos($fn, "::") !== false) {
             $fn = explode("::", $fn);
 
             return $this->callClassMethod($fn[0], $fn[1], $param);
         }
         if (is_array($fn)) {
+
             return $this->callClassMethod($fn[0], $fn[1], $param);
         }
 
         return null;
     }
 
-    protected function callFunction($fn, $params)
+    protected function callFunction($fn, $params = [])
     {
-        return null;
+        return call_user_func_array($fn, $params);
     }
 
     protected function callClassMethod($className, $method, $params)
     {
-        return null;
+        $classNameFull = $className . "::" . $method;
+        if (!is_callable($classNameFull)) {
+            throw new RouterException($classNameFull . " can not found", 404);
+        }
+        $reflectionClass  = new \ReflectionClass($className);
+        $classObject      = $reflectionClass->newInstance();
+        $reflectionMethod = $reflectionClass->getMethod($method);
+
+        return $reflectionMethod->invoke($classObject, $params);
     }
 
     public function __debugInfo()

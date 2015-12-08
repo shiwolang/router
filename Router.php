@@ -43,7 +43,7 @@ class Router
         return self::$_instance[$name];
     }
 
-    public static function m($name = "default")
+    public static function instance($name = "default")
     {
         if (isset(self::$_instance[$name])) {
             return self::$_instance[$name];
